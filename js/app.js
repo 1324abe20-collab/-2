@@ -243,6 +243,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     } catch (err) {
       carrierSelect.innerHTML = '<option value="">Усі перевізники</option>';
+      carrierSelect.innerHTML = '<option value="">Нова Пошта</option>';
+      
     }
   })();
 
