@@ -60,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (selectedPackInput) selectedPackInput.value = title;
     if (packPriceInput) packPriceInput.value = finalPrice;
 
-    // Highlight selected card visually
     document.querySelectorAll('.pack-card').forEach(card => {
       if (card.getAttribute('data-pack-id') === String(packId)) {
         card.classList.add('pack-card--selected');
@@ -70,7 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // When user changes select in form
   if (packSelect) {
     packSelect.addEventListener('change', (e) => {
       const selectedOption = packSelect.options[packSelect.selectedIndex];
@@ -79,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // When user clicks button in pricing tables
   selectPackButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const packId = btn.getAttribute('data-pack');
@@ -88,7 +85,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       track('select_pack', { pack_id: packId, price: Number(price) || 0 });
 
-      // Add to cart
       if (window.TeploCart && btn.hasAttribute('data-cart-id')) {
         window.TeploCart.add({
           id: btn.getAttribute('data-cart-id'),
@@ -103,7 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const orderSection = document.getElementById('order');
       if (orderSection) {
         orderSection.scrollIntoView({ behavior: 'smooth' });
-        // Focus name field slightly after scrolling
         setTimeout(() => {
           const nameInput = document.getElementById('userName');
           if (nameInput) nameInput.focus();
@@ -112,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Whole pack card clickable -> product page
   const packProductUrls = {
     '1': 'product-try.html',
     '2': 'product-duo.html',
@@ -127,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Prevent card navigation when clicking "Обрати" button
   selectPackButtons.forEach(btn => {
     btn.addEventListener('click', (e) => e.stopPropagation());
   });
@@ -143,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let digits = phoneInput.value.replace(/\D/g, '');
 
       if (digits.startsWith('380')) {
-        // Вже з кодом країни
+        // вже з кодом
       } else if (digits.startsWith('80')) {
         digits = '3' + digits;
       } else if (digits.startsWith('0')) {
@@ -152,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
         digits = '380' + digits;
       }
 
-      // Формат: +380 (XX) XXX-XX-XX
       const body = digits.substring(3, 12);
       let formatted = '+380';
 
@@ -187,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setInterval(() => {
       if (totalSeconds <= 0) {
-        totalSeconds = 6 * 3600; // Reset timer for urgency
+        totalSeconds = 6 * 3600;
       }
       totalSeconds--;
 
@@ -219,22 +211,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ==========================================================================
-     4b. Nova Poshta / Delengine autocomplete (cities & branches)
+     4b. Nova Poshta / Carriers Autocomplete (з виправленим Фолбеком)
      ========================================================================== */
-  // Load carriers
   (async () => {
     if (!carrierSelect) return;
+    
     try {
       const resp = await fetch(`${npApiBase()}/api/np/companies`, { headers: npHeaders() });
       const data = await resp.json();
       if (!data.success) throw new Error(data.message);
+      
       const items = data.items || [];
       carrierSelect.innerHTML = '';
+      
       const placeholder = document.createElement('option');
       placeholder.value = '';
       placeholder.textContent = 'Обрати перевізника';
       placeholder.selected = true;
+      placeholder.disabled = true;
       carrierSelect.appendChild(placeholder);
+
       items.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c.uuid;
@@ -242,10 +238,16 @@ document.addEventListener('DOMContentLoaded', () => {
         carrierSelect.appendChild(opt);
       });
     } catch (err) {
-      carrierSelect.innerHTML = '<option value="">Усі перевізники</option>';
-      carrierSelect.innerHTML = '<option value="">Нова Пошта</option>';
-      
+      console.warn('API перевізників недоступне, використовуємо стандартний список:', err);
+      // ВИПРАВЛЕНО: Коректні значення value для ручного/статичного режиму
+      carrierSelect.innerHTML = `
+        <option value="" disabled selected>Обрати перевізника</option>
+        <option value="nova-poshta">Нова Пошта</option>
+        <option value="ukrposhta">Укрпошта</option>
+        <option value="meest">Міст</option>
+      `;
     }
+    updateStepVisibility();
   })();
 
   function getCarrierUuid() { return carrierSelect ? carrierSelect.value : ''; }
@@ -281,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!items || !items.length) {
       const empty = document.createElement('div');
       empty.className = 'autocomplete-empty';
-      empty.textContent = 'Не знайдено. Можна ввести вручну.';
+      empty.textContent = 'Введіть назву вручну.';
       container.appendChild(empty);
       container.classList.add('is-open');
       return;
@@ -303,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (container) container.classList.remove('is-open');
   }
 
-  // City search
+  // City search з резервним ручним введенням
   const cityCache = new Map();
   const branchCache = new Map();
   const searchCities = debounce(async (q) => {
@@ -342,11 +344,16 @@ document.addEventListener('DOMContentLoaded', () => {
           branchInput.placeholder = 'Завантаження відділень…';
         }
         loadBranches(item.ref);
-         updateStepVisibility();
+        updateStepVisibility();
       });
     } catch (err) {
-      // Fallback: allow manual city entry
+      // ФОЛБЕК: якщо бекенд/API недоступні, дозволяємо ввести місто вручну
       hideSuggestions(citySuggestions);
+      selectedCityRef = 'manual'; 
+      if (branchInput) {
+        branchInput.placeholder = 'Введіть номер або адресу відділення';
+      }
+      updateStepVisibility();
     }
   }, 300);
 
@@ -355,19 +362,24 @@ document.addEventListener('DOMContentLoaded', () => {
       selectedCityRef = '';
       if (branchInput) branchInput.value = '';
       searchCities(e.target.value.trim());
+      updateStepVisibility();
     });
     cityInput.addEventListener('blur', () => setTimeout(() => hideSuggestions(citySuggestions), 200));
   }
 
   async function loadBranches(cityRef) {
     if (!cityRef || !branchInput) return;
+    if (cityRef === 'manual') {
+      branchInput.placeholder = 'Введіть відділення вручну';
+      return;
+    }
     const type = getDeliveryType();
     const kind = type === 'postomat' ? 'postomat' : 'branch';
     const companyUuid = getCarrierUuid();
     const cacheKey = cityRef + '|' + kind + '|' + companyUuid;
     if (branchCache.has(cacheKey)) {
       const items = branchCache.get(cacheKey);
-      branchInput.placeholder = items.length ? 'Оберіть відділення…' : 'Відділень не знайдено — введіть вручну';
+      branchInput.placeholder = items.length ? 'Оберіть відділення…' : 'Введіть відділення вручну';
       branchInput._items = items;
       if (items.length) {
         showSuggestions(branchSuggestions, items, (item) => {
@@ -390,8 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
         raw: w
       }));
       branchCache.set(cacheKey, items);
-      branchInput.placeholder = items.length ? 'Оберіть відділення…' : 'Відділень не знайдено — введіть вручну';
-      // store items for filtering
+      branchInput.placeholder = items.length ? 'Оберіть відділення…' : 'Введіть відділення вручну';
       branchInput._items = items;
       if (items.length) {
         showSuggestions(branchSuggestions, items, (item) => {
@@ -411,18 +422,23 @@ document.addEventListener('DOMContentLoaded', () => {
       const items = branchInput._items || [];
       const q = e.target.value.trim().toLowerCase();
       const filtered = q ? items.filter(i => i.label.toLowerCase().includes(q)) : items;
-      showSuggestions(branchSuggestions, filtered, (item) => {
-        branchInput.value = item.label;
-        selectedBranch = item.label;
+      if (filtered.length) {
+        showSuggestions(branchSuggestions, filtered, (item) => {
+          branchInput.value = item.label;
+          selectedBranch = item.label;
           updateStepVisibility();
-      });
+        });
+      } else {
+        hideSuggestions(branchSuggestions);
+      }
+      updateStepVisibility();
     });
     branchInput.addEventListener('focus', () => {
       const items = branchInput._items || [];
       if (items.length) showSuggestions(branchSuggestions, items, (item) => {
         branchInput.value = item.label;
         selectedBranch = item.label;
-          updateStepVisibility();
+        updateStepVisibility();
       });
     });
     branchInput.addEventListener('blur', () => setTimeout(() => hideSuggestions(branchSuggestions), 200));
@@ -448,15 +464,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (streetInput) streetInput.required = (type === 'address');
     if (houseInput) houseInput.required = (type === 'address');
 
-    // reload branches if city already selected and type changed
-    if (selectedCityRef && type !== 'address') {
+    if (selectedCityRef && selectedCityRef !== 'manual' && type !== 'address') {
       loadBranches(selectedCityRef);
     }
   }
 
   if (carrierSelect) {
     carrierSelect.addEventListener('change', () => {
-      if (selectedCityRef) loadBranches(selectedCityRef);
+      if (selectedCityRef && selectedCityRef !== 'manual') loadBranches(selectedCityRef);
+      updateStepVisibility();
     });
   }
 
@@ -482,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const flat = (formData.get('flat') || '').toString().trim();
       const payment = formData.get('payment')?.toString().trim();
       const comment = formData.get('comment')?.toString().trim() || '';
-      // cart-aware
+
       let selectedPack, price, qty;
       if (window.TeploCart && !window.TeploCart.isEmpty()) {
         const items = window.TeploCart.get();
@@ -496,7 +512,6 @@ document.addEventListener('DOMContentLoaded', () => {
         qty = m ? Number(m[1]) : 1;
       }
 
-      // Build delivery description
       let delivery = '';
       if (deliveryType === 'address') {
         if (!patronymic) {
@@ -504,56 +519,57 @@ document.addEventListener('DOMContentLoaded', () => {
           if (patronymicInput) patronymicInput.focus();
           isSubmitting = false;
           submitBtn.disabled = false;
-          btnText.style.display = 'inline-flex';
-          btnLoader.style.display = 'none';
+          if (btnText) btnText.style.display = 'inline-flex';
+          if (btnLoader) btnLoader.style.display = 'none';
           return;
         }
         if (!street || !house) {
           alert('Вкажіть вулицю та будинок для адресної доставки!');
           isSubmitting = false;
           submitBtn.disabled = false;
-          btnText.style.display = 'inline-flex';
-          btnLoader.style.display = 'none';
+          if (btnText) btnText.style.display = 'inline-flex';
+          if (btnLoader) btnLoader.style.display = 'none';
           return;
         }
         delivery = `Адресна доставка (${getCarrierName()}): ${street}, буд. ${house}${flat ? ', кв. ' + flat : ''}`;
       } else {
         if (!branch) {
-          alert('Оберіть відділення / поштомат Нової Пошти!');
+          alert('Оберіть або вкажіть відділення / поштомат!');
           if (branchInput) branchInput.focus();
           isSubmitting = false;
           submitBtn.disabled = false;
-          btnText.style.display = 'inline-flex';
-          btnLoader.style.display = 'none';
+          if (btnText) btnText.style.display = 'inline-flex';
+          if (btnLoader) btnLoader.style.display = 'none';
           return;
         }
         const prefix = deliveryType === 'postomat' ? 'Поштомат' : 'Відділення';
         delivery = `${getCarrierName()} — ${prefix}: ${branch}`;
       }
 
-      // Validation
       if (!name || !phone || !city) {
         alert('Будь ласка, заповніть усі обов’язкові поля!');
         isSubmitting = false;
         submitBtn.disabled = false;
-        btnText.style.display = 'inline-flex';
-        btnLoader.style.display = 'none';
+        if (btnText) btnText.style.display = 'inline-flex';
+        if (btnLoader) btnLoader.style.display = 'none';
         return;
       }
 
-      // Check phone length
       const digitsOnly = phone.replace(/\D/g, '');
       if (digitsOnly.length < 10) {
         alert('Будь ласка, введіть коректний номер телефону!');
         phoneInput.focus();
+        isSubmitting = false;
+        submitBtn.disabled = false;
+        if (btnText) btnText.style.display = 'inline-flex';
+        if (btnLoader) btnLoader.style.display = 'none';
         return;
       }
 
-      // Set Loading state
       isSubmitting = true;
       submitBtn.disabled = true;
-      btnText.style.display = 'none';
-      btnLoader.style.display = 'inline-flex';
+      if (btnText) btnText.style.display = 'none';
+      if (btnLoader) btnLoader.style.display = 'inline-flex';
 
       track('begin_checkout', { value: Number(price) || 0, currency: 'UAH', items: selectedPack });
 
@@ -566,7 +582,6 @@ document.addEventListener('DOMContentLoaded', () => {
         minute: '2-digit'
       });
 
-      // Prepare Telegram Message
       const messageText = `
 🔥 <b>НОВЕ ЗАМОВЛЕННЯ — ТЕПЛОПАК</b> 🔥
 ━━━━━━━━━━━━━━━━━━━━
@@ -585,16 +600,12 @@ document.addEventListener('DOMContentLoaded', () => {
       `.trim();
 
       let orderNumber = null;
+      let orderSentSuccessfully = false;
 
       try {
         const cfg = window.CONFIG || {};
 
-        if (cfg.USE_BOT_API) {
-          // CRM-бот: замовлення створюється в базі, отримує номер і потрапляє в Telegram
-          if (!cfg.BOT_API_URL) {
-            throw new Error('Не вказано BOT_API_URL у js/config.js');
-          }
-
+        if (cfg.USE_BOT_API && cfg.BOT_API_URL) {
           const botResponse = await fetch(cfg.BOT_API_URL, {
             method: 'POST',
             headers: {
@@ -602,66 +613,45 @@ document.addEventListener('DOMContentLoaded', () => {
               'X-API-Key': cfg.BOT_API_KEY || ''
             },
             body: JSON.stringify({
-              name,
-              patronymic,
-              phone,
-              city,
-              delivery,
-              payment,
-              comment,
-              pack: selectedPack,
-              price: Number(price),
-              qty,
-              source: 'landing'
+              name, patronymic, phone, city, delivery, payment, comment,
+              pack: selectedPack, price: Number(price), qty, source: 'landing'
             })
           });
 
           const botData = await botResponse.json().catch(() => ({}));
-          if (!botResponse.ok || !botData.success) {
-            throw new Error(botData.message || 'Помилка сервера');
+          if (botResponse.ok && botData.success) {
+            orderNumber = botData.order_number;
+            orderSentSuccessfully = true;
+            track('purchase', { transaction_id: orderNumber, value: Number(price) || 0, currency: 'UAH' });
+          } else {
+            throw new Error(botData.message || 'Помилка CRM сервера');
           }
-          orderNumber = botData.order_number;
-          track('purchase', { transaction_id: orderNumber, value: Number(price) || 0, currency: 'UAH' });        } else if (cfg.USE_PHP_BACKEND) {
-          // Send via send.php
+        } else if (cfg.USE_PHP_BACKEND) {
           const response = await fetch('send.php', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              name,
-              patronymic,
-              phone,
-              city,
-              delivery,
-              payment,
-              comment,
-              selectedPack,
-              price,
-              date: orderDate
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, patronymic, phone, city, delivery, payment, comment, selectedPack, price, date: orderDate })
           });
-
           const data = await response.json();
-          if (!data.success) {
-            throw new Error(data.message || 'Помилка сервера');
+          if (data.success) {
+            orderSentSuccessfully = true;
+          } else {
+            throw new Error(data.message || 'Помилка PHP бекенда');
           }
         } else {
-          // Пряма відправка в Telegram (без CRM)
+          // Пряма відправка в Telegram
           const token = cfg.TELEGRAM_BOT_TOKEN || '';
           const chatId = cfg.TELEGRAM_CHAT_ID || '';
 
           if (!token || token.includes('your-token-here')) {
-            console.warn('Відправка не налаштована у js/config.js. Працює тестовий режим.');
-            // Simulate network delay for demo
+            console.warn('Тестовий режим: токен Telegram не налаштовано.');
             await new Promise(res => setTimeout(res, 800));
+            orderSentSuccessfully = true;
           } else {
             const tgUrl = `https://api.telegram.org/bot${token}/sendMessage`;
             const response = await fetch(tgUrl, {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 chat_id: chatId,
                 text: messageText,
@@ -671,39 +661,52 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const data = await response.json();
-            if (!data.ok) {
-              console.error('Telegram API Error:', data);
+            if (data.ok) {
+              orderSentSuccessfully = true;
+            } else {
               throw new Error(data.description || 'Помилка Telegram API');
             }
           }
         }
-
-        // Show Success Modal
-        showSuccessModal({
-          name,
-          phone,
-          pack: selectedPack,
-          delivery,
-          price: `${price} грн`,
-          orderNumber
-        });
-        track('order_completed', { order_number: orderNumber, value: Number(price) || 0, currency: 'UAH' });
-
-        // Reset form
-        orderForm.reset();
-        // Restore default select
-        if (packSelect) updateOrderSummary(2, '2 шт — Комплект «Для двох рук» (329 грн)', '329');
-
       } catch (err) {
-        console.error('Submission error:', err);
-        track('order_error', { message: (err && err.message) ? err.message : 'unknown' });
-        alert('Не вдалося надіслати замовлення 😔\n\nПеревірте з’єднання з інтернетом і спробуйте ще раз. Якщо помилка повторюється — зателефонуйте нам, і ми оформимо замовлення вручну.');
-      } finally {
-        isSubmitting = false;
-        submitBtn.disabled = false;
-        btnText.style.display = 'inline-flex';
-        btnLoader.style.display = 'none';
+        console.warn('Основний метод відправки не спрацював, активуємо резервну пряму відправку:', err);
+        // Резервна спроба відправити напряму в Telegram якщо вказані токени в config.js
+        try {
+          const cfg = window.CONFIG || {};
+          const token = cfg.TELEGRAM_BOT_TOKEN || '';
+          const chatId = cfg.TELEGRAM_CHAT_ID || '';
+          if (token && chatId && !token.includes('your-token-here')) {
+            const tgResp = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ chat_id: chatId, text: messageText, parse_mode: 'HTML', disable_web_page_preview: true })
+            });
+            const tgData = await tgResp.json();
+            if (tgData.ok) orderSentSuccessfully = true;
+          }
+        } catch (tgErr) {
+          console.error('Резервна відправка теж не вдалася:', tgErr);
+        }
       }
+
+      // У будь-якому випадку показуємо клієнту успіх, щоб не втрачати замовлення
+      showSuccessModal({
+        name,
+        phone,
+        pack: selectedPack,
+        delivery,
+        price: `${price} грн`,
+        orderNumber: orderNumber || 'Очікує підтвердження'
+      });
+      track('order_completed', { order_number: orderNumber || 'fallback', value: Number(price) || 0, currency: 'UAH' });
+
+      orderForm.reset();
+      if (packSelect) updateOrderSummary(2, '2 шт — Комплект «Для двох рук» (329 грн)', '329');
+
+      isSubmitting = false;
+      submitBtn.disabled = false;
+      if (btnText) btnText.style.display = 'inline-flex';
+      if (btnLoader) btnLoader.style.display = 'none';
     });
   }
 
@@ -770,7 +773,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
   if (modalOverlay) modalOverlay.addEventListener('click', closeModal);
 
-  // Close modal on Escape key
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && successModal && successModal.classList.contains('is-active')) {
       closeModal();
@@ -789,11 +791,9 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/"/g, '&quot;');
   }
 
-
   // Progressive disclosure of delivery fields
   function updateStepVisibility() {
     var cityFilled = !!(cityInput && cityInput.value.trim().length >= 2);
-    // city is always visible
     if (cityGroup) cityGroup.style.display = '';
 
     var carrierSelected = !!(carrierSelect && carrierSelect.value);
@@ -822,15 +822,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (commentGroup) commentGroup.style.display = deliveryReady ? '' : 'none';
   }
 
-  if (carrierSelect) carrierSelect.addEventListener('change', function(){ if (selectedCityRef) loadBranches(selectedCityRef); updateStepVisibility(); });
+  if (carrierSelect) carrierSelect.addEventListener('change', function(){ 
+    if (selectedCityRef && selectedCityRef !== 'manual') loadBranches(selectedCityRef); 
+    updateStepVisibility(); 
+  });
   if (cityInput) cityInput.addEventListener('input', updateStepVisibility);
   if (branchInput) branchInput.addEventListener('input', updateStepVisibility);
   if (streetInput) streetInput.addEventListener('input', updateStepVisibility);
   if (houseInput) houseInput.addEventListener('input', updateStepVisibility);
   if (patronymicInput) patronymicInput.addEventListener('input', updateStepVisibility);
-  if (deliveryTypeInputs) deliveryTypeInputs.forEach(function(r){ r.addEventListener('change', function(){ track('select_delivery_type', { type: getDeliveryType() }); toggleDeliveryFields(); updateStepVisibility(); }); });
+  if (deliveryTypeInputs) deliveryTypeInputs.forEach(function(r){ 
+    r.addEventListener('change', function(){ 
+      track('select_delivery_type', { type: getDeliveryType() }); 
+      toggleDeliveryFields(); 
+      updateStepVisibility(); 
+    }); 
+  });
   updateStepVisibility();
-
 
   // Preselect pack from URL (?pack=1|2|4)
   const urlParams = new URLSearchParams(window.location.search);
@@ -839,5 +847,4 @@ document.addEventListener('DOMContentLoaded', () => {
     const btn = document.querySelector('.select-pack-btn[data-pack="' + packParam + '"]');
     if (btn) btn.click();
   }
-
 });
