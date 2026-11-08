@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Комплект «Для двох рук» (2 шт) — ТеплоПак</title>
+  <meta name="description" content="2 багаторазові сольові грілки ТеплоПак для двох рук. Миттєве тепло за 3 секунди, до 1000 циклів. 329 грн.">
+  <meta name="theme-color" content="#f97316">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Unbounded:wght@600;700;800&display=swap&subset=cyrillic,latin" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=9">
+</head>
+<body>
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="logo">
+        <span class="logo__text">Тепло<strong>Пак</strong></span>
+      </a>
+      <nav class="nav">
+        <a href="index.html#packs" class="nav__link">Комплекти</a>
+        <a href="index.html#order" class="nav__link">Замовити</a>
+      </nav>
+      <a href="index.html?pack=2#order" class="btn btn--header">Замовити</a>
+      <a href="cart.html" class="btn btn--header">🛒 <span class="cart-badge" style="display:none; background:#dc2626; color:#fff; border-radius:999px; padding:2px 7px; font-size:0.75rem; margin-left:4px;"></span></a>
+    </div>
+  </header>
+
+  <section class="hero" style="padding: 48px 0;">
+    <div class="container hero__inner">
+      <div class="hero__content">
+        <span class="badge badge--orange">Хіт продажів</span>
+        <h1 class="hero__title" style="font-size: 2.4rem;">2 багаторазові сольові грілки</h1>
+        <p class="hero__desc">Комплект для двох рук — найпопулярніший вибір. Обидві руки залишаються теплими одночасно. Миттєве нагрівання до +52°C за 3 секунди, до 1000 циклів перезарядки.</p>
+        <div class="hero__actions">
+          <a href="index.html?pack=2#order" class="btn btn--primary btn--pulse">🔥 Замовити за 329 грн</a>
+          <button type="button" class="btn btn--outline" data-cart-add data-cart-id="duo" data-cart-title="2 шт — Комплект «Для двох рук» (329 грн)" data-cart-price="329" onclick="TeploCart.add({id:this.dataset.cartId,title:this.dataset.cartTitle,price:this.dataset.cartPrice,qty:1}); this.textContent='Додано ✓';">🛒 Додати в кошик</button>
+          <p class="hero__guarantee">🛡️ Гарантія 14 днів · Повернення без зайвих питань</p>
+        </div>
+      </div>
+      <div class="hero__visual">
+        <div class="product-card-preview">
+          <div class="product-visual">
+            <div class="warmer-graphic">
+              <div class="warmer-glow"></div>
+              <div class="warmer-body">
+                <div class="warmer-activator"><span class="activator-click">Click</span></div>
+                <div class="warmer-temp">+52°C</div>
+              </div>
+            </div>
+          </div>
+          <div class="product-meta">
+            <div class="product-meta__price">
+              <span class="current-price" style="font-size: 2rem; font-weight: 800;">329 грн</span>
+              <span class="old-price">400 грн</span>
+            </div>
+            <div class="product-meta__stock"><span class="stock-dot"></span> В наявності</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="benefits" style="padding: 60px 0;">
+    <div class="container">
+      <div class="section-head">
+        <span class="section-tag">Опис</span>
+        <h2 class="section-title">Чому обирають цей комплект</h2>
+      </div>
+      <div class="benefits__grid">
+        <div class="benefit-card">
+          <div class="benefit-card__icon">🔥</div>
+          <h3 class="benefit-card__title">Для обох рук</h3>
+          <p class="benefit-card__desc">Дві грілки — по одній у кожну кишеню. Більше не треба перекладати одну грілку між руками.</p>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-card__icon">⚡</div>
+          <h3 class="benefit-card__title">Миттєве тепло</h3>
+          <p class="benefit-card__desc">Клацнув — і за 3 секунди +52°C. Тепло тримається 30–60 хвилин, достатньо для прогулянки чи роботи на вулиці.</p>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-card__icon">♻️</div>
+          <h3 class="benefit-card__title">Економія</h3>
+          <p class="benefit-card__desc">Дешевше, ніж купувати дві окремо. Жодних одноразових хімічних пакетів — екологічно і вигідно.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reviews" style="padding: 60px 0;">
+    <div class="container">
+      <div class="section-head">
+        <span class="section-tag">Відгуки</span>
+        <h2 class="section-title">Що кажуть покупці</h2>
+      </div>
+      <div class="reviews__grid">
+        <div class="review-card">
+          <div class="review-card__stars">⭐⭐⭐⭐⭐</div>
+          <p class="review-card__text">«Купила для сина школяра та собі на ранкові прогулянки з собакою. Раніше мерзли пальці в будь-яких рукавицях. Зараз кладу в кишені ці грілки — краса!»</p>
+          <div class="review-card__author">
+            <div class="avatar">ІМ</div>
+            <div>
+              <strong>Ірина Мельник</strong>
+              <span>м. Київ</span>
+            </div>
+          </div>
+        </div>
+        <div class="review-card">
+          <div class="review-card__stars">⭐⭐⭐⭐⭐</div>
+          <p class="review-card__text">«Комплект для двох — найкращий варіант. Чоловік і я обидва з теплими руками на прогулянці.»</p>
+          <div class="review-card__author">
+            <div class="avatar">ТВ</div>
+            <div>
+              <strong>Тетяна В.</strong>
+              <span>м. Одеса</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding: 40px 0; background: var(--gray-50); border-top: 1px solid var(--gray-200); border-bottom: 1px solid var(--gray-200);">
+    <div class="container" style="display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+      <div>
+        <h3 style="margin: 0 0 6px; font-size: 1.2rem;">🛡️ Гарантія та повернення</h3>
+        <p style="margin: 0; color: var(--gray-600); font-size: 0.95rem;">До 1000 циклів роботи. Повернення протягом 14 днів.</p>
+      </div>
+      <a href="guarantee.html" class="btn btn--outline" style="width: auto; padding: 12px 24px;">Детальніше</a>
+    </div>
+  </section>
+
+  <section style="padding: 60px 0; text-align: center;">
+    <div class="container">
+      <h2 class="section-title">Готові замовити?</h2>
+      <p class="section-subtitle" style="margin-bottom: 24px;">Оформлення займе 1 хвилину. Оплата при отриманні.</p>
+      <a href="index.html?pack=2#order" class="btn btn--primary btn--pulse" style="font-size: 1.1rem; padding: 16px 32px;">🔥 Замовити за 329 грн</a>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div>
+        <div class="logo">
+            <span class="logo__text">Тепло<strong>Пак</strong></span>
+        </div>
+        <p class="footer__copy">© 2026 ТеплоПак. Усі права захищено.</p>
+        <p class="footer__copy"><a href="privacy.html" style="color: inherit; text-decoration: underline;">Політика конфіденційності</a> · <a href="guarantee.html" style="color: inherit; text-decoration: underline;">Гарантія і повернення</a></p>
+      </div>
+    </div>
+  </footer>
+  <script src="js/cart.js?v=3" defer></script>
+</body>
+</html>
